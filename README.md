@@ -12,8 +12,8 @@ trained on US lending data (Lending Club) can transfer to a
 Singapore/Asia credit context — and what adaptations are needed when 
 they don't.
 
-Built as part of IS5126 (Applied Machine Learning for Business) at NUS, 
-with the full modeling pipeline, feature engineering, and infrastructure 
+Built as part of **IS5126 (Hands-on with Applied Analytics)** at NUS,
+with the full modeling pipeline, feature engineering, and infrastructure
 developed independently.
 
 **Key techniques covered:**
