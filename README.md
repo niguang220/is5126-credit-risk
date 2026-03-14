@@ -37,10 +37,8 @@ developed independently.
 ---
 
 ## Repository Structure
-
-\`\`\`
+```
 is5126-credit-risk/
-│
 ├── notebooks/
 │   ├── 01_data_download_and_eda.ipynb
 │   ├── 02_feature_engineering.ipynb
@@ -49,7 +47,6 @@ is5126-credit-risk/
 │   ├── 05_sg_data_acquisition.ipynb
 │   ├── 06_cross_regional_transfer.ipynb
 │   └── 07_localization.ipynb
-│
 ├── src/
 │   ├── data_processing.py
 │   ├── feature_engineering.py
@@ -57,12 +54,11 @@ is5126-credit-risk/
 │   ├── modeling.py
 │   ├── evaluation.py
 │   └── drift_monitoring.py
-│
-├── models/          # Saved model artifacts
-├── reports/figures/ # Generated plots
+├── models/
+├── reports/figures/
 ├── requirements.txt
 └── .gitignore
-\`\`\`
+```
 
 ---
 
