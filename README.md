@@ -1,72 +1,90 @@
-# IS5126 Cross-Regional PD Model Transferability Study
+# Cross-Regional Credit Risk: PD Model Transferability Study
 
-> Can US credit default models predict defaults in Singapore? A study on model transferability across financial ecosystems.
+> Can a US-trained credit default model generalise to Singapore? 
+> An end-to-end study on model transferability across financial ecosystems.
 
-## Project Structure
+---
 
-```
-is5126-credit-risk/
-│
-├── README.md
-├── requirements.txt
-├── .gitignore
-│
-├── notebooks/
-│   ├── 01_data_download_and_eda.ipynb      # Data acquisition + exploratory analysis
-│   ├── 02_feature_engineering.ipynb         # Standard + LLM-assisted features
-│   ├── 03_baseline_modeling.ipynb           # LR / XGBoost / LightGBM
-│   ├── 04_model_evaluation.ipynb            # AUC, KS, Gini, SHAP analysis
-│   ├── 05_sg_data_acquisition.ipynb         # Singapore/Asia data collection
-│   ├── 06_cross_regional_transfer.ipynb     # Transfer test + drift analysis
-│   └── 07_localization.ipynb                # Feature adaptation + recalibration
-│
-├── src/
-│   ├── __init__.py
-│   ├── data_processing.py                   # Reusable cleaning/preprocessing functions
-│   ├── feature_engineering.py               # Feature engineering pipeline
-│   ├── llm_features.py                      # LLM-assisted feature extraction
-│   ├── modeling.py                          # Model training utilities
-│   ├── evaluation.py                        # Evaluation metrics + SHAP
-│   └── drift_monitoring.py                  # PSI / CSI calculations
-│
-├── data/                                    # ⚠️ Add to .gitignore
-│   ├── raw/
-│   ├── processed/
-│   └── external/                            # SG/Asia data
-│
-├── models/                                  # Saved model artifacts
-│
-├── reports/                                 # Generated analysis reports
-│   └── figures/
-│
-└── app/
-    └── streamlit_app.py                     # Phase 4 demo
-```
+## Overview
 
-## Setup
+This project investigates whether Probability of Default (PD) models 
+trained on US lending data (Lending Club) can transfer to a 
+Singapore/Asia credit context — and what adaptations are needed when 
+they don't.
 
-### Google Colab
-Open any notebook in `notebooks/` directly in Colab. Data will be stored in Google Drive.
+Built as part of IS5126 (Applied Machine Learning for Business) at NUS, 
+with the full modeling pipeline, feature engineering, and infrastructure 
+developed independently.
 
-### Local
-```bash
-git clone https://github.com/YOUR_USERNAME/is5126-credit-risk.git
-cd is5126-credit-risk
-pip install -r requirements.txt
-```
+**Key techniques covered:**
+- Logistic Regression / XGBoost / LightGBM for credit scoring
+- LLM-assisted feature extraction
+- SHAP-based model explainability
+- Population Stability Index (PSI) for distribution drift detection
+- Cross-regional model recalibration
 
-## Team
-
-| Role | Member | Focus |
-|------|--------|-------|
-| Domain Expert | TBD | Feature review, industry alignment |
-| ML Engineer | TBD | Modeling pipeline, LLM features |
-| Data & Research | TBD | Data collection, EDA, documentation |
-| Demo & Presentation | TBD | Streamlit app, report, slides |
+---
 
 ## Project Phases
 
-- **Phase 1** (Now → Late Feb): US Baseline PD Model on Lending Club ⭐
-- **Phase 2** (Early Mar → Mid Mar): Singapore/Asia Data Acquisition
-- **Phase 3** (Mid Mar → Early Apr): Cross-Regional Transfer Analysis
-- **Phase 4** (April): Synthesis, Demo & Presentation
+| Phase | Scope | Status |
+|-------|-------|--------|
+| 1 | US Baseline PD Model (Lending Club) — EDA, Feature Engineering, Modeling, Evaluation | ✅ Complete |
+| 2 | Singapore/Asia Data Acquisition | 🔄 In Progress |
+| 3 | Cross-Regional Transfer Analysis + Drift | ⬜ Upcoming |
+| 4 | Localisation, Demo & Presentation | ⬜ Upcoming |
+
+---
+
+## Repository Structure
+
+\`\`\`
+is5126-credit-risk/
+│
+├── notebooks/
+│   ├── 01_data_download_and_eda.ipynb
+│   ├── 02_feature_engineering.ipynb
+│   ├── 03_baseline_modeling.ipynb
+│   ├── 04_model_evaluation.ipynb
+│   ├── 05_sg_data_acquisition.ipynb
+│   ├── 06_cross_regional_transfer.ipynb
+│   └── 07_localization.ipynb
+│
+├── src/
+│   ├── data_processing.py
+│   ├── feature_engineering.py
+│   ├── llm_features.py
+│   ├── modeling.py
+│   ├── evaluation.py
+│   └── drift_monitoring.py
+│
+├── models/          # Saved model artifacts
+├── reports/figures/ # Generated plots
+├── requirements.txt
+└── .gitignore
+\`\`\`
+
+---
+
+## Setup
+
+\`\`\`bash
+git clone https://github.com/niguang220/is5126-credit-risk.git
+cd is5126-credit-risk
+pip install -r requirements.txt
+\`\`\`
+
+Or open any notebook directly in Google Colab.
+
+---
+
+## Tech Stack
+
+`Python` `scikit-learn` `XGBoost` `LightGBM` `SHAP` `Pandas` `Streamlit`
+
+---
+
+## Author
+
+**Darren** — Master of Computing (General Track), NUS  
+[GitHub](https://github.com/niguang220)
