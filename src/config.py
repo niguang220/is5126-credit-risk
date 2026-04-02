@@ -9,6 +9,16 @@ DATA_DIR = f'{DRIVE_DIR}/data/processed'
 MODEL_DIR = f'{DRIVE_DIR}/models'
 FIGURE_DIR = 'figures'
 
+# Part 2 / Part 3 paths
+DESC_SUBSET_PATH = f'{DATA_DIR}/desc_subset.parquet'
+SAMPLE_3000_PATH = f'{DATA_DIR}/sample_3000.parquet'
+SAMPLE_200_PATH  = f'{DATA_DIR}/sample_200.parquet'
+BERT_EMBED_PATH  = f'{DATA_DIR}/bert_embeddings.npy'
+BERT_INDEX_PATH  = f'{DATA_DIR}/bert_embeddings_index.npy'
+BERT_PCA_PATH    = f'{DATA_DIR}/bert_pca_features.parquet'
+QWEN_CACHE_3000  = f'{MODEL_DIR}/qwen_cache_3000.json'
+QWEN_CACHE_200   = f'{MODEL_DIR}/qwen_cache_200.json'
+
 # ── Time Split ───────────────────────────────────────────────
 TIME_SPLIT_DATE = '2017-01-01'
 
@@ -71,19 +81,30 @@ LR_PARAMS = {
 IV_THRESHOLD = 0.02        # minimum IV to keep a feature
 IV_SUSPICIOUS = 0.50       # IV above this suggests leakage
 
-# ── PSI Thresholds (Phase 3) ────────────────────────────────
+# ── PSI Thresholds ───────────────────────────────────────────
 PSI_STABLE = 0.10          # < 0.10 = no drift
 PSI_MODERATE = 0.25        # 0.10-0.25 = investigate
                            # > 0.25 = significant drift
 
-# ── SG Synthetic Data Anchors (Phase 2) ─────────────────────
-SG_ANCHORS = {
-    'home_ownership_rate': 0.90,       # SingStat
-    'median_income_sgd': 54000,        # SingStat
-    'savings_rate': 0.30,              # CPF contribution
-    'credit_score_range': (1000, 2000),  # CBS
-    'default_rate': 0.055,             # MAS charge-off rate
-}
+# ── BERT Config ──────────────────────────────────────────────
+BERT_MODEL_NAME = 'bert-base-uncased'
+BERT_MAX_LENGTH = 128
+BERT_BATCH_SIZE = 64
+BERT_PCA_COMPONENTS = 50   # reduce 768-dim → 50-dim before feeding to XGB
+
+# ── Qwen Config ──────────────────────────────────────────────
+QWEN_MODEL = 'qwen3-max'
+QWEN_BASE_URL = 'https://apis.iflow.cn/v1'
+QWEN_API_KEY_SECRET = 'IFLOW_API_KEY'   # Colab Secrets key name
+QWEN_REQUEST_DELAY = 0.5               # seconds between API calls (rate limit)
+# ⚠️ iFlow API shuts down 2026-04-17 — all LLM experiments must finish before then
+
+# ── Part 3: LLM Correction ───────────────────────────────────
+BORDERLINE_LOW  = 0.3      # ML prob below this = confident non-default
+BORDERLINE_HIGH = 0.7      # ML prob above this = confident default
+                           # [0.3, 0.7] = borderline → send to LLM
+PART3_SAMPLE_N  = 200
+PART3_BORDERLINE_N = 100   # how many of the 200 are borderline cases
 
 # ── Visualization ────────────────────────────────────────────
 COLORS = {
@@ -95,4 +116,6 @@ COLORS = {
     'lr': '#E67E22',
     'xgb': '#2E86AB',
     'lgb': '#28A745',
+    'bert': '#9B59B6',
+    'qwen': '#E74C3C',
 }
