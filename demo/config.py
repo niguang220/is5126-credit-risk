@@ -1,11 +1,19 @@
 """
 Demo configuration — paths, thresholds, constants.
-All Google Drive paths use the local sync mount G:\\我的云端硬盘\\is5126\\
+
+Set the IS5126_DATA_DIR environment variable to point to your local copy
+of the is5126 data folder (the one containing data/processed/ and models/).
+
+  Windows:  set IS5126_DATA_DIR=C:/path/to/is5126
+  Mac/Linux: export IS5126_DATA_DIR=/path/to/is5126
+
+If not set, falls back to the default Google Drive mount path.
 """
+import os
 from pathlib import Path
 
 # ── Google Drive paths ────────────────────────────────────────
-DRIVE_DIR   = Path("G:/我的云端硬盘/is5126")
+DRIVE_DIR   = Path(os.environ.get("IS5126_DATA_DIR", "G:/我的云端硬盘/is5126"))
 DATA_DIR    = DRIVE_DIR / "data/processed"
 MODEL_DIR   = DRIVE_DIR / "models"
 FIGURE_DIR  = DRIVE_DIR / "figures"
