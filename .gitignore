@@ -12,6 +12,11 @@ models/*.pkl
 models/*.joblib
 models/*.json
 
+# Exception: demo/data/ is bundled for Streamlit Cloud deployment
+!demo/data/
+!demo/data/**
+!demo/ood_bounds.json
+
 # Python
 __pycache__/
 *.py[cod]

@@ -1,28 +1,38 @@
 """
 Demo configuration — paths, thresholds, constants.
 
-Set the IS5126_DATA_DIR environment variable to point to your local copy
-of the is5126 data folder (the one containing data/processed/ and models/).
-
-  Windows:  set IS5126_DATA_DIR=C:/path/to/is5126
-  Mac/Linux: export IS5126_DATA_DIR=/path/to/is5126
-
-If not set, falls back to the default Google Drive mount path.
+Path resolution order:
+  1. IS5126_DATA_DIR environment variable (explicit override)
+  2. demo/data/ directory bundled inside the repo (for Streamlit Cloud / teammates)
+  3. Default Google Drive mount path (original dev machine)
 """
 import os
 from pathlib import Path
 
-# ── Google Drive paths ────────────────────────────────────────
-DRIVE_DIR   = Path(os.environ.get("IS5126_DATA_DIR", "G:/我的云端硬盘/is5126"))
-DATA_DIR    = DRIVE_DIR / "data/processed"
-MODEL_DIR   = DRIVE_DIR / "models"
+_REPO_DATA = Path(__file__).parent / "data"  # demo/data/ bundled in repo
+
+if "IS5126_DATA_DIR" in os.environ:
+    DRIVE_DIR = Path(os.environ["IS5126_DATA_DIR"])
+    DATA_DIR  = DRIVE_DIR / "data/processed"
+    MODEL_DIR = DRIVE_DIR / "models"
+elif _REPO_DATA.exists():
+    DATA_DIR  = _REPO_DATA / "processed"
+    MODEL_DIR = _REPO_DATA / "models"
+    DRIVE_DIR = _REPO_DATA.parent  # not used directly
+else:
+    DRIVE_DIR = Path("G:/我的云端硬盘/is5126")
+    DATA_DIR  = DRIVE_DIR / "data/processed"
+    MODEL_DIR = DRIVE_DIR / "models"
 FIGURE_DIR  = DRIVE_DIR / "figures"
 
 # Data files
 SAMPLE_3000_PATH       = DATA_DIR / "sample_3000.parquet"
-TRAIN_PATH             = DATA_DIR / "train.parquet"
+TRAIN_PATH             = DATA_DIR / "train.parquet"  # only needed if ood_bounds.json is absent
 WOE_MAPS_PATH          = DATA_DIR / "woe_maps.json"
 IMPUTATION_PATH        = DATA_DIR / "imputation_values.json"
+
+# Precomputed OOD bounds (eliminates train.parquet dependency for deployment)
+OOD_BOUNDS_PATH        = Path(__file__).parent / "ood_bounds.json"
 
 # Model files
 XGB_MODEL_PATH           = MODEL_DIR / "demo_model_with_qwen.joblib"

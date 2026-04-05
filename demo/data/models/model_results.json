@@ -1,0 +1,229 @@
+{
+  "comparison": {
+    "AUC": {
+      "LR_A_with_grade_test": 0.7047,
+      "XGB_A_with_grade_test": 0.7221,
+      "LGB_A_with_grade_test": 0.6906,
+      "LR_B_no_grade_test": 0.6973,
+      "XGB_B_no_grade_test": 0.7189,
+      "LGB_B_no_grade_test": 0.6719
+    },
+    "KS": {
+      "LR_A_with_grade_test": 0.3,
+      "XGB_A_with_grade_test": 0.3236,
+      "LGB_A_with_grade_test": 0.276,
+      "LR_B_no_grade_test": 0.2884,
+      "XGB_B_no_grade_test": 0.3178,
+      "LGB_B_no_grade_test": 0.2479
+    },
+    "Gini": {
+      "LR_A_with_grade_test": 0.4095,
+      "XGB_A_with_grade_test": 0.4441,
+      "LGB_A_with_grade_test": 0.3812,
+      "LR_B_no_grade_test": 0.3945,
+      "XGB_B_no_grade_test": 0.4378,
+      "LGB_B_no_grade_test": 0.3437
+    },
+    "Brier": {
+      "LR_A_with_grade_test": 0.2192,
+      "XGB_A_with_grade_test": 0.2167,
+      "LGB_A_with_grade_test": 0.1828,
+      "LR_B_no_grade_test": 0.2204,
+      "XGB_B_no_grade_test": 0.2181,
+      "LGB_B_no_grade_test": 0.1853
+    },
+    "AP": {
+      "LR_A_with_grade_test": 0.4369,
+      "XGB_A_with_grade_test": 0.4658,
+      "LGB_A_with_grade_test": 0.4224,
+      "LR_B_no_grade_test": 0.4313,
+      "XGB_B_no_grade_test": 0.4646,
+      "LGB_B_no_grade_test": 0.4095
+    }
+  },
+  "primary_model": "XGB_B_no_grade_test",
+  "primary_features": [
+    "acc_now_delinq",
+    "acc_open_past_24mths",
+    "acc_open_past_24mths_missing",
+    "addr_state_woe",
+    "annual_inc",
+    "application_type_woe",
+    "avg_account_bal",
+    "avg_cur_bal",
+    "avg_cur_bal_missing",
+    "bc_util",
+    "bc_util_missing",
+    "chargeoff_within_12_mths",
+    "collections_12_mths_ex_med",
+    "credit_history_months",
+    "delinq_2yrs",
+    "delinq_amnt",
+    "delinq_per_year",
+    "dti",
+    "emp_length_num",
+    "emp_length_num_missing",
+    "fico_score",
+    "home_ownership_woe",
+    "initial_list_status_woe",
+    "inq_last_6mths",
+    "inq_per_open_acc",
+    "installment",
+    "installment_to_income",
+    "is_long_term",
+    "job_category_woe",
+    "loan_amnt",
+    "loan_to_income",
+    "mo_sin_old_il_acct",
+    "mo_sin_old_il_acct_missing",
+    "mo_sin_old_rev_tl_op",
+    "mo_sin_old_rev_tl_op_missing",
+    "mo_sin_rcnt_rev_tl_op",
+    "mo_sin_rcnt_rev_tl_op_missing",
+    "mo_sin_rcnt_tl",
+    "mo_sin_rcnt_tl_missing",
+    "monthly_inc",
+    "mort_acc",
+    "mort_acc_missing",
+    "mths_since_last_delinq",
+    "mths_since_last_delinq_missing",
+    "mths_since_recent_bc",
+    "mths_since_recent_bc_missing",
+    "mths_since_recent_inq",
+    "mths_since_recent_inq_missing",
+    "mths_since_recent_revol_delinq",
+    "mths_since_recent_revol_delinq_missing",
+    "new_acc_rate",
+    "num_accts_ever_120_pd",
+    "num_accts_ever_120_pd_missing",
+    "num_actv_bc_tl",
+    "num_actv_bc_tl_missing",
+    "num_actv_rev_tl",
+    "num_actv_rev_tl_missing",
+    "num_bc_sats",
+    "num_bc_sats_missing",
+    "num_bc_tl",
+    "num_bc_tl_missing",
+    "num_il_tl",
+    "num_il_tl_missing",
+    "num_rev_accts",
+    "num_rev_accts_missing",
+    "num_tl_120dpd_2m",
+    "num_tl_120dpd_2m_missing",
+    "num_tl_30dpd",
+    "num_tl_30dpd_missing",
+    "num_tl_90g_dpd_24m",
+    "num_tl_90g_dpd_24m_missing",
+    "num_tl_op_past_12m",
+    "num_tl_op_past_12m_missing",
+    "open_acc",
+    "pct_tl_nvr_dlq",
+    "pct_tl_nvr_dlq_missing",
+    "percent_bc_gt_75",
+    "percent_bc_gt_75_missing",
+    "pub_rec",
+    "pub_rec_bankruptcies",
+    "purpose_woe",
+    "revol_bal",
+    "revol_bal_to_income",
+    "revol_to_total_bal",
+    "revol_util",
+    "tax_liens",
+    "term",
+    "tot_coll_amt",
+    "tot_coll_amt_missing",
+    "tot_cur_bal",
+    "tot_cur_bal_missing",
+    "total_acc",
+    "total_rev_hi_lim",
+    "total_rev_hi_lim_missing",
+    "verification_status_woe"
+  ],
+  "grade_related": [
+    "grade_num",
+    "sub_grade_num",
+    "int_rate"
+  ],
+  "shap_top20": [
+    {
+      "feature": "is_long_term",
+      "mean_abs_shap": 0.365989089012146
+    },
+    {
+      "feature": "installment_to_income",
+      "mean_abs_shap": 0.22024168074131012
+    },
+    {
+      "feature": "fico_score",
+      "mean_abs_shap": 0.19447071850299835
+    },
+    {
+      "feature": "installment",
+      "mean_abs_shap": 0.15398791432380676
+    },
+    {
+      "feature": "dti",
+      "mean_abs_shap": 0.1464083343744278
+    },
+    {
+      "feature": "new_acc_rate",
+      "mean_abs_shap": 0.12731634080410004
+    },
+    {
+      "feature": "credit_history_months",
+      "mean_abs_shap": 0.11204968392848969
+    },
+    {
+      "feature": "home_ownership_woe",
+      "mean_abs_shap": 0.09972609579563141
+    },
+    {
+      "feature": "loan_amnt",
+      "mean_abs_shap": 0.08867935091257095
+    },
+    {
+      "feature": "total_rev_hi_lim",
+      "mean_abs_shap": 0.08813019096851349
+    },
+    {
+      "feature": "term",
+      "mean_abs_shap": 0.08559225499629974
+    },
+    {
+      "feature": "num_actv_rev_tl",
+      "mean_abs_shap": 0.08419086039066315
+    },
+    {
+      "feature": "addr_state_woe",
+      "mean_abs_shap": 0.08250074833631516
+    },
+    {
+      "feature": "percent_bc_gt_75",
+      "mean_abs_shap": 0.06952071189880371
+    },
+    {
+      "feature": "mths_since_recent_inq",
+      "mean_abs_shap": 0.06574356555938721
+    },
+    {
+      "feature": "num_tl_op_past_12m",
+      "mean_abs_shap": 0.06055746600031853
+    },
+    {
+      "feature": "job_category_woe",
+      "mean_abs_shap": 0.059188567101955414
+    },
+    {
+      "feature": "purpose_woe",
+      "mean_abs_shap": 0.05781036242842674
+    },
+    {
+      "feature": "mo_sin_old_rev_tl_op",
+      "mean_abs_shap": 0.05483119934797287
+    },
+    {
+      "feature": "avg_cur_bal",
+      "mean_abs_shap": 0.05479958653450012
+    }
+  ]
+}

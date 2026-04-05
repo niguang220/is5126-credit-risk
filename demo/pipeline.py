@@ -21,7 +21,7 @@ from demo.config import (
     XGB_MODEL_PATH, XGB_MODEL_BASELINE_PATH, QWEN_CACHE_PATH, DEMO_MODEL_FEATURES_PATH,
     MODEL_FEATURES, MISSING_INDICATOR_FEATURES,
     OOD_FEATURES, OOD_PERCENTILE_LOW, OOD_PERCENTILE_HIGH, OOD_FLAG_THRESHOLD,
-    THRESH_APPROVE, THRESH_DECLINE,
+    THRESH_APPROVE, THRESH_DECLINE, OOD_BOUNDS_PATH,
 )
 
 
@@ -44,15 +44,20 @@ def load_artifacts():
     with open(QWEN_CACHE_PATH) as f:
         qwen_cache = json.load(f)
 
-    # OOD bounds: computed from training data (all OOD_FEATURES are raw columns)
-    train_df = pd.read_parquet(TRAIN_PATH, columns=OOD_FEATURES)
-    ood_bounds = {
-        feat: (
-            float(np.nanpercentile(train_df[feat], OOD_PERCENTILE_LOW)),
-            float(np.nanpercentile(train_df[feat], OOD_PERCENTILE_HIGH)),
-        )
-        for feat in OOD_FEATURES if feat in train_df.columns
-    }
+    # OOD bounds: load from precomputed JSON if available, else compute from train.parquet
+    if OOD_BOUNDS_PATH.exists():
+        with open(OOD_BOUNDS_PATH) as f:
+            _raw = json.load(f)
+        ood_bounds = {feat: tuple(vals) for feat, vals in _raw.items()}
+    else:
+        train_df = pd.read_parquet(TRAIN_PATH, columns=OOD_FEATURES)
+        ood_bounds = {
+            feat: (
+                float(np.nanpercentile(train_df[feat], OOD_PERCENTILE_LOW)),
+                float(np.nanpercentile(train_df[feat], OOD_PERCENTILE_HIGH)),
+            )
+            for feat in OOD_FEATURES if feat in train_df.columns
+        }
 
     return model, model_baseline, woe_maps, numeric_medians, qwen_cache, ood_bounds, model_feature_list
 
