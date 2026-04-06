@@ -1,52 +1,82 @@
-# Cross-Regional Credit Risk: PD Model Transferability Study
+# LLM-Enhanced Credit Risk Assessment
 
-> Can a US-trained credit default model generalise to Singapore?
-> An end-to-end study on model transferability across financial ecosystems.
+> **Does semantic analysis of borrower descriptions improve credit scoring?**
+> An end-to-end study on LLM integration in credit default prediction.
+
+**IS5126 Hands-on Applied Analytics | Group 7 | NUS School of Computing | April 2026**
+
+🔗 **[Live Demo](https://is5126-credit-risk-gow2bpzskbfbsjyzjvrzeq.streamlit.app/)** | **[Final Report](final_report_complete.pdf)**
 
 ---
 
 ## Overview
 
-This project investigates whether Probability of Default (PD) models
-trained on US lending data (Lending Club) can transfer to a
-Singapore/Asia credit context — and what adaptations are needed when
-they don't.
+Traditional credit risk models rely entirely on structured numeric features — FICO score, DTI, income, employment history. But two applicants with identical numbers can have vastly different risk profiles depending on *why* they need the loan — a signal only visible in the borrower's own description.
 
-Built as part of **IS5126 (Hands-on with Applied Analytics)** at NUS.
+This project systematically investigates two paradigms for integrating LLMs into a credit risk pipeline:
 
-**Key techniques:**
-- Logistic Regression / XGBoost / LightGBM for credit scoring
-- WoE encoding & IV-based feature selection
-- LLM-assisted feature engineering (381K job titles → 15 semantic categories)
-- SHAP-based model explainability
-- Population Stability Index (PSI) for distribution drift detection
-- Copula-based synthetic data generation anchored to public statistics
-- Cross-regional model recalibration
+1. **Pre-stage (Semantic Feature Extraction):** `desc text → LLM → risk score → XGBoost feature`
+2. **Post-stage (Boundary Case Correction):** `ML borderline case → LLM reasoning → label correction`
+
+The study uses the public **LendingClub dataset** (1.3M loans, 2007–2018) and compares three LLM configurations — no LLM, naive BERT, and Qwen3-Max — against a strong traditional XGBoost baseline.
 
 ---
 
-## Project Phases
+## Key Results
 
-| Phase | Scope | Status |
-|-------|-------|--------|
-| 1 | US Baseline PD Model — EDA, Feature Engineering, Modeling & SHAP | ✅ Complete |
-| 2 | Singapore Synthetic Data Generation (Copula + MAS/SingStat anchoring) | 🔄 In Progress |
-| 3 | Cross-Regional Transfer Analysis — Direct transfer, PSI drift, adaptation | ⬜ Upcoming |
-| 4 | Streamlit Demo & Final Presentation | ⬜ Upcoming |
-
----
-
-## Phase 1 Results (US Baseline)
+### Part 1 — Traditional ML Baseline (Full Dataset, 95 features)
 
 | Model | AUC | KS | Gini |
-|---|---|---|---|
-| Logistic Regression | 0.6973 | 0.288 | 0.395 |
-| **XGBoost (tuned) ★** | **0.7195** | **0.318** | **0.439** |
-| LightGBM (tuned) | 0.6760 | 0.251 | 0.352 |
+|-------|-----|-----|------|
+| Logistic Regression (no grade) | 0.697 | 0.288 | 0.395 |
+| **XGBoost (no grade) ← Primary** | **0.719** | **0.318** | **0.438** |
+| XGBoost (with grade) | 0.722 | 0.324 | 0.444 |
 
-*All results from Experiment B (no grade features) — the transfer-ready configuration.*
+*Grade features excluded — assigned post-application, proxies the target variable.*
 
-**Top SHAP features:** `is_long_term`, `installment_to_income`, `fico_score`, `installment`, `dti`
+### Part 2 — LLM Semantic Features (3K sample)
+
+| Pipeline | AUC | KS | BACC | Recall |
+|----------|-----|-----|------|--------|
+| A': Traditional baseline | 0.649 | 0.236 | 0.618 | 0.576 |
+| B': + Naive BERT | 0.660 | 0.277 | 0.638 | 0.533 |
+| **C: + Qwen3-Max** | 0.637 | **0.286** | **0.643** | **0.609** |
+
+Qwen3-Max achieves the highest KS (+0.050 vs baseline) and Recall (+0.033), improving separation at the operational threshold — at the cost of lower global AUC due to discretised output values.
+
+### Part 3 — LLM Correction on Structured Profiles (200 samples)
+
+| Condition | Accuracy | BACC |
+|-----------|----------|------|
+| ML alone (borderline cases) | **0.600** | **0.600** |
+| ML + LLM correction (borderline) | 0.550 | 0.550 |
+
+LLM correction **hurts** accuracy by 5pp on borderline cases. LLM value is tied to text, not tabular reasoning.
+
+---
+
+## Architecture
+
+```
+Loan Application
+       │
+       ├── Structured Features ──────────────────────────────┐
+       │   (FICO, DTI, income, employment, ...)               │
+       │                                                       ▼
+       └── desc text (optional, ~15% of loans)          XGBoost Model
+               │                                              │
+               ▼                                              ▼
+          Qwen3-Max                                    Risk Score (0–1)
+          ↓ default_probability                              │
+          (single scalar feature) ────────────────────────── ┘
+                                                             │
+                                              ┌──────────────┼──────────────┐
+                                              ▼              ▼              ▼
+                                           Approve     Manual Review    Decline
+                                          (< 0.25)     (0.25–0.52)     (> 0.52)
+                                                             │
+                                              SHAP attribution + Qwen reasoning
+```
 
 ---
 
@@ -55,51 +85,96 @@ Built as part of **IS5126 (Hands-on with Applied Analytics)** at NUS.
 ```
 is5126-credit-risk/
 ├── notebooks/
-│   ├── 01_data_download_and_eda.ipynb
-│   ├── 02_feature_engineering.ipynb
-│   ├── 03_baseline_modeling.ipynb
-│   ├── 04_sg_synthetic_data.ipynb          # Phase 2
-│   └── 05_transfer_analysis.ipynb          # Phase 3
+│   ├── 01_eda.ipynb                        # EDA on full LC dataset
+│   ├── 02_feature_engineering.ipynb        # WoE, derived features, imputation
+│   ├── 03_part1_ml_baseline.ipynb          # Part 1: XGBoost baseline
+│   ├── 04_part2_bert_pipeline.ipynb        # Part 2: BERT pipelines (A, B, A', B')
+│   ├── 05_part2_qwen_pipeline.ipynb        # Part 2: Qwen pipeline (C) + evaluation
+│   └── 06_part3_llm_correction.ipynb       # Part 3: LLM correction experiment
+│
+├── scripts/
+│   ├── run_qwen_3000.py                    # Qwen API calls for 3K scoring
+│   └── run_qwen_correction.py             # Qwen API calls for Part 3
 │
 ├── src/
-│   ├── features.py          # WoE/IV calculation, derived ratios, job title classification
-│   ├── evaluation.py        # AUC, KS, Gini, Brier, calibration metrics
-│   └── drift.py             # PSI computation, feature distribution comparison
+│   ├── features.py                         # Feature engineering, WoE, job classification
+│   ├── evaluation.py                       # AUC, KS, Gini, bootstrap DeLong
+│   └── config.py                           # Shared constants
 │
-├── app.py                   # Streamlit demo (Phase 4)
-├── data/
-│   └── processed/
-├── models/
-├── figures/
-├── requirements.txt
-└── .gitignore
+├── demo/
+│   ├── app.py                              # Streamlit demo (3-tab interactive app)
+│   ├── pipeline.py                         # Full scoring pipeline (OOD → score → SHAP)
+│   ├── config.py                           # Demo paths and thresholds
+│   ├── data/                               # Bundled model + data files (~5MB)
+│   ├── ood_bounds.json                     # Precomputed OOD percentile bounds
+│   ├── requirements.txt
+│   └── SETUP.md                            # Setup guide for teammates
+│
+├── final_report_complete.pdf
+└── README.md
 ```
-
-**Design principle:** Notebooks drive the analysis narrative; `src/` holds reusable
-functions extracted from the notebooks to avoid duplication across phases.
-Notebooks import from `src/` via `sys.path.append('..')`.
 
 ---
 
-## Setup
+## Demo
+
+A Streamlit prototype is deployed at:
+**https://is5126-credit-risk-gow2bpzskbfbsjyzjvrzeq.streamlit.app/**
+
+**Three tabs:**
+- **Overview** — Pipeline architecture and core results from all three parts
+- **Case Studies** — Side-by-side analysis of where LLMs succeed (Case A) and fail (Case B)
+- **Interactive Demo** — Select any of 3,000 real applicants; see OOD warnings, dual ML-Only vs ML+Qwen gauge, SHAP top factors, Qwen reasoning, and adjustable risk thresholds
+
+### Run locally
 
 ```bash
 git clone https://github.com/niguang220/is5126-credit-risk.git
 cd is5126-credit-risk
-pip install -r requirements.txt
+pip install -r demo/requirements.txt
+python -m streamlit run demo/app.py
 ```
 
-Or open any notebook directly in Google Colab (data is stored on Google Drive under `is5126/`).
+Data files are bundled in `demo/data/` — no additional setup needed.
+See [`demo/SETUP.md`](demo/SETUP.md) for custom data directory configuration.
+
+---
+
+## Decision Thresholds
+
+| Zone | Score | Basis |
+|------|-------|-------|
+| ✅ Approve | < 0.25 | Actual default rate 6.6% (vs 26.3% average) |
+| 🔶 Manual Review | 0.25 – 0.52 | Model uncertainty zone (~25% of applications) |
+| ❌ Decline | > 0.52 | KS-optimal threshold (KS = 0.318) |
+
+---
+
+## Regulatory Context
+
+This architecture aligns with Singapore's **MAS FEAT Framework** (2019):
+
+| Principle | Implementation |
+|-----------|---------------|
+| **Fairness** | Bias analysis: Qwen scores vs actual default rates by borrower group |
+| **Ethics** | No proxy discrimination; decisions grounded in legitimate signals |
+| **Accountability** | SHAP attribution for every prediction |
+| **Transparency** | Qwen natural language reasoning per applicant |
 
 ---
 
 ## Tech Stack
 
-`Python` `scikit-learn` `XGBoost` `LightGBM` `SHAP` `SDV` `Pandas` `OpenAI API` `Streamlit`
+`Python` · `XGBoost` · `LightGBM` · `SHAP` · `Streamlit` · `Pandas` · `scikit-learn` · `Qwen3-Max (iFlow API)` · `BERT (HuggingFace)`
 
 ---
 
-## Author
+## Team — Group 7
 
-**Darren** — Master of Computing (General Track), NUS
-[GitHub](https://github.com/niguang220)
+| Name | Student ID | Contribution |
+|------|-----------|--------------|
+| He Yufan | A0331801U | GitHub Repo, Demo, Slides |
+| Zhang Ruijia | A0215695W | Methodology Design, Report Structure |
+| Yiwei Luo | A0328749L | Report Parts 1, 2, 3 |
+| Yang Enjian | A0327980U | Report Part 5 |
+| Yang Haoran | A0332268A | Report Part 4 |
