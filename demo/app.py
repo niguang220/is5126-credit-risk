@@ -18,6 +18,8 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 import streamlit as st
+import textwrap
+import streamlit.components.v1 as components
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from demo.config import (
@@ -28,7 +30,7 @@ from demo.config import (
     CASE_STUDY_1_IDX, CASE_STUDY_2_IDX,
     COLORS,
 )
-from demo.pipeline import load_artifacts, score, compute_shap
+from demo.pipeline import load_artifacts, score as run_pipeline, compute_shap
 
 # ── Page config ───────────────────────────────────────────────
 st.set_page_config(
@@ -36,6 +38,52 @@ st.set_page_config(
     page_icon="💳",
     layout="wide",
 )
+st.markdown("""
+<style>
+.stTabs [data-baseweb="tab-list"] {
+    display: flex;
+    justify-content: flex-start !important;
+    gap: 18px;
+    background: #f8fafc;
+    padding: 14px 18px 0 18px;
+    border-radius: 16px 16px 0 0;
+    border-bottom: 1px solid #e5e7eb;
+    width: 100%;
+    margin: 0;
+}
+
+/* each tab */
+.stTabs [data-baseweb="tab"] {
+    height: 58px;
+    white-space: nowrap;
+    background: transparent;
+    border-radius: 14px 14px 0 0;
+    color: #374151;
+    font-size: 1.18rem;
+    font-weight: 700;
+    padding: 0 28px;
+    border-bottom: 4px solid transparent;
+}
+
+/* hover */
+.stTabs [data-baseweb="tab"]:hover {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+/* selected tab */
+.stTabs [aria-selected="true"] {
+    background: #fff1f2 !important;
+    color: #be123c !important;
+    border-bottom: 4px solid #ef4444 !important;
+}
+
+/* hide default highlight */
+.stTabs [data-baseweb="tab-highlight"] {
+    display: none;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ── Load artifacts (cached) ───────────────────────────────────
 @st.cache_resource(show_spinner="Loading models and data…")
@@ -103,7 +151,7 @@ def shap_waterfall(shap_items: list[dict]) -> go.Figure:
 
 
 # ── TAB LAYOUT ────────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["📊 Overview", "🔍 Case Studies", "🎮 Interactive Demo"])
+tab1, tab2, tab3 = st.tabs(["Overview", "Case Studies", "Interactive Demo"])
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -118,26 +166,19 @@ with tab1:
     > improve credit risk model accuracy — and does a stronger LLM produce better features?
     """)
 
-    # Pipeline diagram
     st.subheader("Pipeline Architecture")
-    st.markdown("""
-    ```
-    Loan Application
-         │
-         ├─ Structured Features ──────────────────────► XGBoost ──► ML Risk Score
-         │   (FICO, DTI, income, …)                                        │
-         │                                                                  ▼
-         └─ desc text (if available) ──► Qwen3-Max ──► qwen_score ──► Final Score + Reasoning
-                                          ↑
-                                    LLM as Preprocessor
-                                  (not a co-decision-maker)
-    ```
-    """)
 
-    st.info(
-        "**Key insight:** LLM's value is in extracting semantic signals from free text "
-        "that structured data cannot capture — not in replacing or overriding ML decisions.",
-        icon="💡"
+    st.code(
+        """Loan Application
+    │
+    ├─ Structured Features ──────────────────────► XGBoost ──► ML Risk Score
+    │   (FICO, DTI, income, …)                                         │
+    │                                                                  ▼
+    └─ desc text (if available) ──► Qwen3-Max ──► qwen_score ──► Final Score + Reasoning
+                                            ↑
+                                LLM as Preprocessor
+                                (not a co-decision-maker)""",
+        language="text"
     )
 
     # Decision thresholds
@@ -239,10 +280,196 @@ with tab1:
 # TAB 2 — CASE STUDIES
 # ═══════════════════════════════════════════════════════════════
 with tab2:
+    st.markdown("""
+    <style>
+    .case-note {
+        font-size: 1.02rem;
+        color: #4b5563;
+        margin-bottom: 1.1rem;
+    }
+
+    .case-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        padding: 1.2rem 1.2rem 1rem 1.2rem;
+        background: #ffffff;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        height: 100%;
+    }
+
+    .case-banner-good {
+        background: #ecfdf3;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+        border-radius: 12px;
+        padding: 0.75rem 0.95rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .case-banner-bad {
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        padding: 0.75rem 0.95rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .case-section-title {
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 1rem 0 0.45rem 0;
+        color: #111827;
+    }
+
+    .case-metrics {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.45rem 1rem;
+        margin-bottom: 0.9rem;
+    }
+
+    .case-metric-item {
+        font-size: 0.98rem;
+        line-height: 1.5;
+        color: #374151;
+    }
+
+    .case-box-blue {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 12px;
+        padding: 0.95rem 1rem;
+        min-height: 160px;
+        max-height: 190px;
+        overflow-y: auto;
+        color: #1d4ed8;
+        line-height: 1.7;
+    }
+    .reasoning-wrap {
+        min-height: 305px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+    }
+
+    .risk-wrap {
+        min-height: 145px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+    }
+
+    .risk-list {
+        margin: 0.4rem 0 0 0.2rem;
+        padding-left: 1.3rem;
+        min-height: 90px;
+        color: #374151;
+        line-height: 1.8;
+    }
+
+    .case-box-yellow {
+        background: #fffbea;
+        border: 1px solid #fde68a;
+        border-radius: 12px;
+        padding: 0.95rem 1rem;
+        min-height: 160px;
+        max-height: 190px;
+        overflow-y: auto;
+        color: #92400e;
+        line-height: 1.7;
+    }
+
+    .case-box-gray {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1rem;
+        min-height: 170px;
+        color: #374151;
+        line-height: 1.75;
+    }
+
+    .score-line {
+        margin: 0.85rem 0 0.25rem 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .score-pill {
+        display: inline-block;
+        padding: 0.15rem 0.55rem;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        border: 1px solid #d1d5db;
+        background: #f3f4f6;
+        color: #374151;
+        margin-left: 0.25rem;
+    }
+
+    .risk-list {
+        margin: 0.4rem 0 0 0.2rem;
+        padding-left: 1.3rem;
+        min-height: 105px;
+        color: #374151;
+        line-height: 1.8;
+    }
+
+    .summary-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 1rem 1.1rem;
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        min-height: 165px;
+    }
+
+    .summary-label {
+        font-size: 0.95rem;
+        color: #6b7280;
+        margin-bottom: 0.45rem;
+    }
+
+    .summary-main {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #111827;
+        line-height: 1.1;
+    }
+
+    .summary-tag {
+        display: inline-block;
+        margin-top: 0.7rem;
+        padding: 0.28rem 0.65rem;
+        border-radius: 999px;
+        background: #ecfdf3;
+        color: #166534;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .unified-box {
+        margin-top: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 1rem 1.1rem;
+        background: #fafafa;
+        color: #374151;
+        font-size: 1rem;
+        line-height: 1.75;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     st.title("Case Studies — When Does LLM Add Value?")
     st.markdown(
-        "Two real loans from the LendingClub dataset. "
-        "Same pipeline, very different outcomes — illustrating the role of `desc` text quality."
+        '<div class="case-note">Two real loans from the LendingClub dataset under the same pipeline, '
+        'but with very different outcomes. The contrast highlights the role of <code>desc</code> quality in shaping LLM signal.</div>',
+        unsafe_allow_html=True
     )
 
     cs1_raw = sample_df.loc[CASE_STUDY_1_IDX]
@@ -250,97 +477,165 @@ with tab2:
     cs1_qwen = qwen_cache.get(str(CASE_STUDY_1_IDX), {})
     cs2_qwen = qwen_cache.get(str(CASE_STUDY_2_IDX), {})
 
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2, gap="large")
 
-    # ── Case 1 ────────────────────────────────────────────────
     with col1:
+        st.markdown('<div class="case-card">', unsafe_allow_html=True)
         st.markdown("### Case A — Qwen Catches What ML Misses ✅")
-        st.success("Qwen effective: desc reveals fund misuse risk that structured data cannot see")
+        st.markdown(
+            '<div class="case-banner-good">Qwen effective: desc reveals semantic risk signals beyond structured features</div>',
+            unsafe_allow_html=True
+        )
 
-        metrics = {
-            "Loan Amount": f"${int(cs1_raw['loan_amnt']):,}",
-            "Annual Income": f"${int(cs1_raw['annual_inc']):,}",
-            "DTI": f"{cs1_raw['dti']:.2f} (low — looks safe)",
-            "FICO Score": f"{int(cs1_raw['fico_score'])} (acceptable)",
-            "Purpose": cs1_raw["purpose"],
-            "True Outcome": "**DEFAULT** 🔴",
-        }
-        for k, v in metrics.items():
-            st.markdown(f"**{k}:** {v}")
+        st.markdown('<div class="case-section-title">Loan Profile</div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="case-metrics">
+            <div class="case-metric-item"><b>Loan Amount:</b> ${int(cs1_raw['loan_amnt']):,}</div>
+            <div class="case-metric-item"><b>Annual Income:</b> ${int(cs1_raw['annual_inc']):,}</div>
+            <div class="case-metric-item"><b>DTI:</b> {cs1_raw['dti']:.2f}</div>
+            <div class="case-metric-item"><b>FICO Score:</b> {int(cs1_raw['fico_score'])}</div>
+            <div class="case-metric-item"><b>Purpose:</b> {cs1_raw['purpose']}</div>
+            <div class="case-metric-item"><b>True Outcome:</b> DEFAULT 🔴</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-        st.markdown("**Borrower Description:**")
-        st.info(str(cs1_raw["desc"])[:600])
+        st.markdown('<div class="case-section-title">Borrower Description</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="case-box-blue">{str(cs1_raw["desc"])[:600]}</div>', unsafe_allow_html=True)
 
         if cs1_qwen and not cs1_qwen.get("parse_error"):
-            st.markdown(f"**Qwen Risk Score:** `{cs1_qwen.get('score', 'N/A'):.2f}` — `{cs1_qwen.get('risk_level', '')}`")
-            st.markdown("**Qwen Reasoning:**")
-            st.warning(cs1_qwen.get("reasoning", ""))
-            if cs1_qwen.get("key_risk_factors"):
-                st.markdown("**Key Risk Factors identified by Qwen:**")
-                for f in cs1_qwen["key_risk_factors"]:
-                    st.markdown(f"- {f}")
+            qwen_score_1 = cs1_qwen.get("score", 0.0)
+            qwen_level_1 = cs1_qwen.get("risk_level", "")
+            st.markdown(
+                f'<div class="score-line">Qwen Risk Score: <code>{qwen_score_1:.2f}</code><span class="score-pill">{qwen_level_1}</span></div>',
+                unsafe_allow_html=True
+            )
 
+            st.markdown('<div class="case-section-title">Qwen Reasoning</div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="case-box-yellow">{cs1_qwen.get("reasoning", "")}</div>',
+                unsafe_allow_html=True
+            )
+
+            risk_items = "".join([f"<li>{f}</li>" for f in cs1_qwen.get("key_risk_factors", [])])
+            st.markdown('<div class="case-section-title">Key Risk Factors Identified by Qwen</div>', unsafe_allow_html=True)
+            st.markdown(f'<ul class="risk-list">{risk_items}</ul>', unsafe_allow_html=True)
+
+        st.markdown('<div class="case-section-title">Interpretation</div>', unsafe_allow_html=True)
         st.markdown("""
-        ---
-        **Interpretation:** ML sees FICO=702, DTI=10.95, income=$80K → Risk Score 0.24 → **Approve**.
-        Qwen reads the desc and flags: *"vague business plan, using the same loan for both
-        startup capital and debt consolidation — unclear fund prioritisation"* → score 0.35.
-        The borrower ultimately defaulted. **This is genuine incremental signal: Qwen caught
-        a behavioural red flag that no structured feature could encode.**
-        """)
+        <div class="case-box-gray">
+        ML sees a relatively safe structured profile and would likely approve this case.
+        Qwen reads the borrower description and flags additional semantic warning signs,
+        including weak business planning and unclear fund prioritisation.
+        The borrower ultimately defaulted.
+        <div class="case-highlight-good">
+        Key takeaway: semantic features provide real incremental value beyond structured data in complex cases.
+        </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # ── Case 2 ────────────────────────────────────────────────
+        st.markdown('</div>', unsafe_allow_html=True)
+
     with col2:
+        st.markdown('<div class="case-card">', unsafe_allow_html=True)
         st.markdown("### Case B — Qwen Fails: Low-Info Description ❌")
-        st.error("Qwen ineffective: template text provides no actionable signal")
+        st.markdown(
+            '<div class="case-banner-bad">Qwen ineffective: low-information desc provides little actionable signal</div>',
+            unsafe_allow_html=True
+        )
 
-        metrics2 = {
-            "Loan Amount": f"${int(cs2_raw['loan_amnt']):,}",
-            "Annual Income": f"${int(cs2_raw['annual_inc']):,}",
-            "DTI": f"{cs2_raw['dti']:.1f}",
-            "FICO Score": f"{int(cs2_raw['fico_score'])}",
-            "Purpose": cs2_raw["purpose"],
-            "True Outcome": "**DEFAULT** 🔴",
-        }
-        for k, v in metrics2.items():
-            st.markdown(f"**{k}:** {v}")
+        st.markdown('<div class="case-section-title">Loan Profile</div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="case-metrics">
+            <div class="case-metric-item"><b>Loan Amount:</b> ${int(cs2_raw['loan_amnt']):,}</div>
+            <div class="case-metric-item"><b>Annual Income:</b> ${int(cs2_raw['annual_inc']):,}</div>
+            <div class="case-metric-item"><b>DTI:</b> {cs2_raw['dti']:.1f}</div>
+            <div class="case-metric-item"><b>FICO Score:</b> {int(cs2_raw['fico_score'])}</div>
+            <div class="case-metric-item"><b>Purpose:</b> {cs2_raw['purpose']}</div>
+            <div class="case-metric-item"><b>True Outcome:</b> DEFAULT 🔴</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-        st.markdown("**Borrower Description:**")
-        st.info(str(cs2_raw["desc"]))
+        st.markdown('<div class="case-section-title">Borrower Description</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="case-box-blue">{str(cs2_raw["desc"])}</div>', unsafe_allow_html=True)
 
         if cs2_qwen and not cs2_qwen.get("parse_error"):
-            st.markdown(f"**Qwen Risk Score:** `{cs2_qwen.get('score', 'N/A'):.2f}` — `{cs2_qwen.get('risk_level', '')}`")
-            st.markdown("**Qwen Reasoning:**")
-            st.warning(cs2_qwen.get("reasoning", ""))
+            qwen_score_2 = cs2_qwen.get("score", 0.0)
+            qwen_level_2 = cs2_qwen.get("risk_level", "")
+            st.markdown(
+                f'<div class="score-line">Qwen Risk Score: <code>{qwen_score_2:.2f}</code><span class="score-pill">{qwen_level_2}</span></div>',
+                unsafe_allow_html=True
+            )
 
+            st.markdown('<div class="case-section-title">Qwen Reasoning</div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="case-box-yellow">{cs2_qwen.get("reasoning", "")}</div>',
+                unsafe_allow_html=True
+            )
+
+            if cs2_qwen.get("key_risk_factors"):
+                risk_items = "".join([f"<li>{f}</li>" for f in cs2_qwen.get("key_risk_factors", [])])
+            else:
+                risk_items = "<li>Limited informative risk cues in desc</li>"
+            st.markdown('<div class="case-section-title">Key Risk Factors Identified by Qwen</div>', unsafe_allow_html=True)
+            st.markdown(f'<ul class="risk-list">{risk_items}</ul>', unsafe_allow_html=True)
+
+        st.markdown('<div class="case-section-title">Interpretation</div>', unsafe_allow_html=True)
         st.markdown("""
-        ---
-        **Interpretation:** The desc only mentions job stability (positive signal).
-        Qwen has no other information to work with → assigns low score 0.12.
-        The borrower defaulted. **When desc quality is low, LLM cannot add value —
-        it may even produce false confidence.**
+        <div class="case-box-gray">
+        The description provides only a weak positive signal related to job stability
+        and offers little additional context on repayment capacity.
+        Qwen therefore assigns a relatively low risk score, yet the borrower defaults.
+        <div class="case-highlight-bad">
+        Key takeaway: when desc quality is low, LLM-derived signals become much less effective.
+        </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-        This directly explains why aggregate AUC didn't improve significantly:
-        a large fraction of the 3,000 descriptions are template-style with minimal
-        actionable content.
-        """)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     st.divider()
     st.subheader("LLM Quality Evaluation Summary")
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Consistency", "std ≈ 0.003", "100% samples std < 0.05")
-    c2.metric("Faithfulness", "88.2%", "reasoning direction matches score")
-    c3.metric("Bias (purpose)", "r = 0.235", "limited by desc quality variation")
+
+    s1, s2, s3 = st.columns(3, gap="large")
+
+    with s1:
+        st.markdown("""
+        <div class="summary-card">
+            <div class="summary-label">Consistency</div>
+            <div class="summary-main">std ≈ 0.003</div>
+            <div class="summary-tag">100% samples std &lt; 0.05</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with s2:
+        st.markdown("""
+        <div class="summary-card">
+            <div class="summary-label">Faithfulness</div>
+            <div class="summary-main">88.2%</div>
+            <div class="summary-tag">reasoning direction matches score</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with s3:
+        st.markdown("""
+        <div class="summary-card">
+            <div class="summary-label">Bias (purpose)</div>
+            <div class="summary-main">r = 0.235</div>
+            <div class="summary-tag">limited by desc quality variation</div>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("""
-    **Unified interpretation:**
-    Qwen is *stable* (std≈0) and *honest* (88.2% faithful) —
-    the performance ceiling is set by **input desc quality**, not model capability.
-    In deployments where borrowers provide structured narratives, LLM signal would be stronger.
-    """)
+    <div class="unified-box">
+    <b>Unified interpretation:</b> Qwen demonstrates strong stability and reasonably aligned reasoning,
+    while the performance ceiling is primarily constrained by input <code>desc</code> quality.
+    In settings where borrowers provide richer and more structured narratives,
+    stronger semantic gains are likely.
+    </div>
+    """, unsafe_allow_html=True)
 
     if FIG_PART2_CONSISTENCY.exists():
-        st.image(str(FIG_PART2_CONSISTENCY), caption="Consistency: near-zero std across 5 independent runs")
+        st.image(str(FIG_PART2_CONSISTENCY), caption="Consistency: near-zero variation across five independent runs")
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -398,7 +693,7 @@ with tab3:
 
     # Run pipeline
     with st.spinner("Running pipeline…"):
-        result = score(
+        result = run_pipeline(
             raw, selected_idx,
             model, woe_maps, numeric_medians, qwen_cache, ood_bounds,
             model_feature_list, model_baseline,
