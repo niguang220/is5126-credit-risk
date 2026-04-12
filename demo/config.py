@@ -17,8 +17,8 @@ if "IS5126_DATA_DIR" in os.environ:
     MODEL_DIR = DRIVE_DIR / "models"
 elif _REPO_DATA.exists():
     DATA_DIR  = _REPO_DATA / "processed"
-    MODEL_DIR = _REPO_DATA / "models"
-    DRIVE_DIR = _REPO_DATA.parent  # not used directly
+    DRIVE_DIR = _REPO_DATA.parent   # demo/
+    MODEL_DIR = DRIVE_DIR / "models"
 else:
     DRIVE_DIR = Path("G:/我的云端硬盘/is5126")
     DATA_DIR  = DRIVE_DIR / "data/processed"
