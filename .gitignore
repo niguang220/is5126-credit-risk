@@ -1,5 +1,3 @@
-CLAUDE.md
-
 # Data files (too large for git)
 data/
 *.csv
@@ -17,27 +15,6 @@ models/*.json
 !demo/data/**
 !demo/ood_bounds.json
 
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
-.eggs/
-dist/
-build/
-
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb_metadata
-
-# Environment
-.env
-.venv/
-env/
-
-# IDE
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
+# Exception: demo/models/ needed for Streamlit Cloud deployment
+!demo/models/
+!demo/models/**
