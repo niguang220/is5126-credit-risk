@@ -1,0 +1,6 @@
+Method,Accuracy,BACC,F1
+ML alone,0.645,0.645,0.6468
+ML + LLM correction,0.62,0.62,0.6
+ML alone (borderline),0.6,0.6,0.5652
+ML + LLM (borderline),0.55,0.55,0.4444
+ML alone (confident),0.69,0.69,0.7156
